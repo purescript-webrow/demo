@@ -1,5 +1,9 @@
 # Webrow guide + app
 
+WIP. Some deps not published yet.
+
+## Objectives
+
 * Build a simple proof of concept application based on _webrow_.
 
 * Tag steps to track the progress.
