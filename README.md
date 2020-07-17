@@ -6,6 +6,8 @@
 
 * Sketch a webrow guide along the way.
 
+* Track performance when adding more app layers.
+
 
 <!--
 
