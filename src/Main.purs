@@ -7,6 +7,7 @@ import Data.Map (Map)
 import Data.Map (insert, lookup) as Map
 import Data.Maybe (Maybe(..), isJust)
 import Data.Tuple (snd) as Tuple
+import Data.UUID (UUID)
 import Data.Variant (Variant, case_, on)
 import Data.Variant (inj, match) as Variant
 import Effect (Effect)
@@ -73,6 +74,8 @@ type Routes = Variant (RootRoutes + Auth.RouteRow + Registration.RouteRow + ())
 
 _root = SProxy ∷ SProxy ""
 
+type User = (email ∷ Email, hashedPassword ∷ String, id ∷ UUID, isAdmin ∷ Boolean, salt ∷ String)
+
 routeDuplex ∷ D.RouteDuplex' Routes
 routeDuplex = D.root $ RouteDuplex.Variant.variant' $ Record.Builder.build
   ( Record.Builder.insert _root rootRouteDuplex
@@ -80,18 +83,20 @@ routeDuplex = D.root $ RouteDuplex.Variant.variant' $ Record.Builder.build
   <<< Registration.routeBuilder
   ) {}
 
-router = case_
-  # on _root
-    ( \_ → pure $ Variant.inj _root do
-        RelativeUrl loginUrl ← printRoute (Variant.inj _auth Auth.Login)
-        RelativeUrl registerUrl ← printRoute (Variant.inj _registration Registration.RegisterEmail)
-        Response.ok $ html $ do
-          M.ul $ do
-            M.li $ M.a ! A.href registerUrl $ M.text "register"
-            M.li $ M.a ! A.href loginUrl $ M.text "login"
-    )
-  # Auth.router
-  # Registarion.router
+router v = r v
+  where
+    r = case_
+      # on _root
+        ( \_ → pure $ Variant.inj _root do
+            RelativeUrl loginUrl ← printRoute (Variant.inj _auth Auth.Login)
+            RelativeUrl registerUrl ← printRoute (Variant.inj _registration Registration.RegisterEmail)
+            Response.ok $ html $ do
+              M.ul $ do
+                M.li $ M.a ! A.href registerUrl $ M.text "register"
+                M.li $ M.a ! A.href loginUrl $ M.text "login"
+        )
+      # Auth.router
+      # Registarion.router
 
 -- runAuth ∷ ∀ eff. Run (Auth () + eff) ~> Run eff
 runAuth db = Run.run (Run.on _auth handler Run.send)
