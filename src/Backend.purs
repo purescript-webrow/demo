@@ -1,7 +1,8 @@
-module Main where
+module Backend where
 
 import Prelude hiding ((/))
 
+import Components (loginFormComponentBuilder)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
 import Data.Map (insert, lookup) as Map
@@ -21,6 +22,7 @@ import Polyform.Batteries.Messages (string, urlEncoded) as Batteries.Messages
 import Polyform.Batteries.Messages.String (Messages) as String
 import Polyform.Batteries.Messages.UrlEncoded (Messages) as Batteries.Messages.UrlEncoded
 import Polyform.Batteries.Messages.UrlEncoded (Messages) as UrlEncoded
+import React.Basic (ReactComponent, element)
 import Record.Builder (build, insert) as Record.Builder
 import Routing.Duplex (RouteDuplex', root) as D
 import Routing.Duplex.Generic (noArgs, sum) as D
@@ -52,13 +54,14 @@ import WebRow.Crypto (run) as Crypto
 import WebRow.Forms.Validators (Messages) as WebRow.Forms.Validators
 import WebRow.HTTP.Cookies (run) as Cookies
 import WebRow.HTTP.Response (ok, run) as Response
-import WebRow.HTTP.Response (setHeader)
+import WebRow.HTTP.Response (ok, setHeader)
 import WebRow.KeyValueStore.Types (Key)
 import WebRow.Mailer (Email(..), Mailer, _mailer)
 import WebRow.Mailer (MailerF(..)) as Mailer
 import WebRow.Message (Message, MessageF(..), _message)
 import WebRow.Routing (FullUrl(..), RelativeUrl(..), printRoute, route, runRouting)
 import WebRow.Session (runInMemory) as Session
+import WebRow.Templating.MUI.Auth (page, page')
 import WebRow.Templating.MUI.Auth (render) as Templating.MUI.Auth
 import WebRow.Testing.Interpret (runMailer', runMessage) as Testing.Interpret
 import WebRow.Testing.Messages (validators) as WebRow.Testing.Messages
@@ -165,9 +168,10 @@ app
   ∷ { user ∷ Ref (Map Email Password)
     , session ∷ Ref (Map Key SessionData)
     }
+  → (ReactComponent {})
   → Request
   → ResponseM
-app db req = do
+app db loginFormComponent req = do
   runBaseAff'
     <<< Response.run
     <<< runRouting "localhost:10000" routeDuplex req
@@ -180,15 +184,16 @@ app db req = do
     <<< runAuth db.user $ do
       bind route $ router >=> (case_
           # on _root identity
-          # on _auth Templating.MUI.Auth.render
+          # on _auth (const (ok $ page' (element loginFormComponent {}))) -- Templating.MUI.Auth.render
           # on _registration Registration.Testing.Templates.render)
 
 main ∷ Effect Unit
 main = do
   let
     port = 10000
+  loginFormComponent ← loginFormComponentBuilder
   db ← { session: _, user: _ } <$> Ref.new mempty <*> Ref.new mempty
-  void $ HTTPure.serve port (app db) $ log ("Run app on: " <> show port)
+  void $ HTTPure.serve port (app db loginFormComponent) $ log ("Run app on: " <> show port)
   -- void $ HTTPure.serve port (\_ → Effect.Class.liftEffect random >>= show >>> HTTPure.ok) $ log ("HTTPure baseline")
   -- server ← baseline
   -- HTTP.listen server { backlog: Nothing, hostname: "127.0.0.1", port } (log "baseline")
