@@ -189,7 +189,7 @@ let prettyprinter =
       "master"
   }
 
-let routing-duplex-variant = 
+let routing-duplex-variant-backup = 
   { dependencies =
       [ "routing-duplex"
       ]
@@ -198,6 +198,9 @@ let routing-duplex-variant =
   , version = 
       "master"
   }
+
+let routing-duplex-variant = ../purescript-routing-duplex-variant/spago.dhall as Location
+
 
 let homogeneous =
   { dependencies =
@@ -305,7 +308,6 @@ let oneof =
   }
 let undefined-is-not-a-problem = ../purescript-undefined-is-not-a-problem/spago.dhall as Location
 let react-basic-mui = ../mui/mui/spago.dhall as Location
-
 --   { dependencies =
 --     [ "effect"
 --     , "foreign"

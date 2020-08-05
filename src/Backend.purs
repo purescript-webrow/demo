@@ -2,7 +2,7 @@ module Backend where
 
 import Prelude hiding ((/))
 
-import Components (loginFormComponentBuilder)
+import Components (formComponentBuilder)
 import Data.Generic.Rep (class Generic)
 import Data.Map (Map)
 import Data.Map (insert, lookup) as Map
@@ -16,6 +16,7 @@ import Effect.Console (log)
 import Effect.Random (random)
 import Effect.Ref (Ref)
 import Effect.Ref (modify_, new, read) as Ref
+import Frontend (interpretAuth)
 import HTTPure (Method(..), Request, ResponseM)
 import HTTPure (serve) as HTTPure
 import Polyform.Batteries.Messages (string, urlEncoded) as Batteries.Messages
@@ -39,6 +40,7 @@ import Unsafe.Coerce (unsafeCoerce)
 import WebRow (method, ok) as W
 import WebRow.Applets.Auth (Route(..), RouteRow, Messages, routeBuilder, router) as Auth
 import WebRow.Applets.Auth.Effects (AuthF(..))
+import WebRow.Applets.Auth.Forms (loginForm)
 import WebRow.Applets.Auth.Testing.Messages (auth) as Auth.Testing.Messages
 import WebRow.Applets.Auth.Testing.Templates (render) as Auth.Testing.Templates
 import WebRow.Applets.Auth.Types (Password, _auth)
@@ -191,7 +193,7 @@ main ∷ Effect Unit
 main = do
   let
     port = 10000
-  loginFormComponent ← loginFormComponentBuilder
+  loginFormComponent ← formComponentBuilder loginForm interpretAuth 
   db ← { session: _, user: _ } <$> Ref.new mempty <*> Ref.new mempty
   void $ HTTPure.serve port (app db loginFormComponent) $ log ("Run app on: " <> show port)
   -- void $ HTTPure.serve port (\_ → Effect.Class.liftEffect random >>= show >>> HTTPure.ok) $ log ("HTTPure baseline")

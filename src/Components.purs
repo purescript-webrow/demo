@@ -101,11 +101,11 @@ x form interpreter =
 dumpWidgets = case_
   # on _textInput \(TextInputProps { name, payload }) → Widget.dump (Identity name) (Identity payload)
 
-loginFormComponentBuilder :: ∀ o
+formComponentBuilder :: ∀ o
   . Forms.Uni (Auth () + ()) Messages (TextInput + ()) o
   -> (Run (Auth () + Message Messages + ()) ~> Run ())
   -> Effect (ReactComponent {})
-loginFormComponentBuilder formBuilder runner =
+formComponentBuilder formBuilder runner =
   React.component "Form" \_ → React.do
     let
       { updates, layout, validate } = x formBuilder runner
