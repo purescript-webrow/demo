@@ -1,6 +1,6 @@
 # Webrow guide + app
 
-WIP. Some deps not published yet.
+WIP. Some deps are not published yet.
 
 ## Objectives
 
